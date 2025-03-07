@@ -1,13 +1,1965 @@
+HTML FILE
 <!DOCTYPE html>
-<title>Detective-X</title>
 <html lang="th">
 <head>
-<base target="_top">
-<link rel="icon" type="ICON" sizes="16x16" href="#"/>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Detective-X</title>
+  <script src="https://cdn.tailwindcss.com/3.3.5"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.2"></script>
+  <!-- เพิ่ม jsPDF สำหรับการส่งออก PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes popup {
+      0% { opacity: 0; transform: translate(-50%, -60%); }
+      100% { opacity: 1; transform: translate(-50%, -50%); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.05); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    .animate-popup {
+      animation: popup 0.5s ease-in-out;
+    }
+    .animate-pulse-slow {
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .hidden {
+      display: none;
+    }
+    .thai-date {
+      font-family: 'Kanit', sans-serif;
+    }
+    
+    /* สำหรับการซ่อนในการพิมพ์ PDF */
+    .pdf-hide {
+      display: block;
+    }
+    
+    /* สำหรับรูปภาพในการพิมพ์ PDF */
+    .pdf-image {
+      width: 12rem; 
+      height: 12rem;
+    }
+    
+    /* สไตล์เพิ่มเติมสำหรับแสดงผลบนมือถือ */
+    @media (max-width: 640px) {
+      .table-responsive {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      .table-responsive th,
+      .table-responsive td {
+        min-width: 100px;
+      }
+      
+      /* ปรับปรุงการแสดงผลของโมดอล */
+      .modal-mobile {
+        padding: 1rem;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+      
+      /* ปรับปรุงขนาดตัวอักษรสำหรับมือถือ */
+      .mobile-text-base {
+        font-size: 0.9rem !important;
+      }
+      
+      .mobile-text-lg {
+        font-size: 1.1rem !important;
+      }
+      
+      .mobile-text-xl {
+        font-size: 1.25rem !important;
+      }
+      
+      /* ปรับการแสดงผลปุ่มบนมือถือ */
+      .mobile-btn {
+        padding: 0.5rem !important;
+        font-size: 0.85rem !important;
+      }
+      
+      /* ปรับการวางตำแหน่งของฟอร์ม */
+      .mobile-form-spacing > div {
+        margin-bottom: 1rem !important;
+      }
+      
+      /* ลดขนาด PDF button บนมือถือ */
+      .pdf-btn-mobile {
+        width: 100% !important;
+        margin-top: 0.5rem !important;
+      }
+    }
+    
+    /* เพิ่มสไตล์สำหรับปุ่ม 3D */
+    .btn-3d {
+      position: relative;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      transition: all 0.2s ease;
+      top: 0;
+    }
+    .btn-3d:hover {
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      top: -2px;
+    }
+    .btn-3d:active {
+      box-shadow: 0 5px 10px -3px rgba(0, 0, 0, 0.1), 0 2px 3px -2px rgba(0, 0, 0, 0.05);
+      top: 0;
+    }
+    
+    /* Loading spinner ที่มีมิติ */
+    .loading-spinner {
+      width: 64px;
+      height: 64px;
+      position: relative;
+    }
+    .loading-spinner:before, .loading-spinner:after {
+      content: '';
+      border-radius: 50%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .loading-spinner:before {
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      animation: spin 1s linear infinite;
+      background: conic-gradient(transparent, rgba(59, 130, 246, 0.5), rgba(59, 130, 246, 1));
+    }
+    .loading-spinner:after {
+      box-shadow: inset 0 0 0 3px rgba(59, 130, 246, 0.1), 
+                  inset 0 0 0 6px rgba(59, 130, 246, 0.2),
+                  inset 0 0 0 9px rgba(59, 130, 246, 0.3),
+                  inset 0 0 0 12px rgba(59, 130, 246, 0.4);
+    }
+  </style>
 </head>
-<body>
-<iframe style="width: 100%; height: 100vh;"
-scrolling="yes" src="https://script.google.com/macros/s/AKfycbx6bL44zaiTntI_gorYr0uIO4Fm5wKvKAfmiTx-L3FGXW6BylqX620IX-OXHuc14lUB/exec"frameborder="0"></iframe>
+<body class="bg-blue-50 font-['Kanit'] flex items-center justify-center min-h-screen">
+  <!-- ระบบหมุนโหลดที่ปรับปรุงให้มีมิติมากขึ้น -->
+        <div id="loading" class="hidden fixed inset-0 flex items-center justify-center z-50">
+    <div class="bg-white bg-opacity-90 p-8 rounded-lg shadow-2xl border border-blue-200 animate-fade-in">
+      <div class="flex flex-col items-center justify-center">
+        <div class="loading-spinner mb-4"></div>
+        <div class="mt-4 text-blue-600 text-lg font-medium animate-pulse-slow">
+          <i class="fas fa-database mr-2"></i> กำลังดำเนินการ...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ตัวระบบล็อคอิน -->
+  <div id="password-container" class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md text-center animate-fade-in">
+    <h1 class="text-4xl font-bold text-blue-500 mb-6">Detective-X System</h1>
+    <div class="mb-2 text-gray-600 text-sm">รหัสผ่าน: khunthalay (สำหรับการทดสอบระบบ)</div>
+    <label for="password" class="block text-gray-700 text-lg mb-2">🔑กรอกรหัสผ่าน</label>
+    <input type="password" id="password" class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:border-blue-500" required />
+    <button onclick="checkPassword()" class="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition duration-300 btn-3d">เข้าสู่ระบบ</button>
+    <div id="password-status" class="text-red-500 mt-4"></div>
+  </div>
+
+  <!-- หน้าหลักเมื่อล็อกอินแล้ว -->
+  <div id="main-menu" class="bg-white rounded-lg shadow-lg p-6 sm:p-8 w-full max-w-md text-center hidden animate-fade-in">
+    <h1 class="text-3xl sm:text-4xl font-bold text-blue-500 mb-6">Detective-X</h1>
+    <div class="grid grid-cols-1 gap-4">
+      <button onclick="showForm()" class="bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition duration-300 flex items-center justify-center btn-3d">
+        <i class="fas fa-plus-circle mr-2"></i> เพิ่มข้อมูลใหม่
+      </button>
+      <button onclick="showDatabase()" class="bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition duration-300 flex items-center justify-center btn-3d">
+        <i class="fas fa-database mr-2"></i> ดูฐานข้อมูล
+      </button>
+      <button onclick="logout()" class="bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 transition duration-300 flex items-center justify-center btn-3d">
+        <i class="fas fa-sign-out-alt mr-2"></i> ออกจากระบบ
+      </button>
+    </div>
+  </div>
+
+  <!-- ตัวกล่องแบบฟอร์ม -->
+  <div id="form-container" class="bg-white rounded-lg shadow-lg p-4 sm:p-8 w-full max-w-4xl hidden animate-fade-in">
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
+      <h1 class="text-3xl sm:text-4xl font-bold text-blue-500 mb-4 sm:mb-0">📒ระบบบันทึกสืบสวน</h1>
+      <button onclick="backToMainMenu()" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-300 btn-3d">
+        <i class="fas fa-arrow-left mr-2"></i> กลับหน้าหลัก
+      </button>
+    </div>
+    
+    <form id="field-form" class="space-y-4 sm:space-y-6 mobile-form-spacing">
+      <input type="hidden" id="record-id" value="" />
+      <input type="hidden" id="existing-image-url" value="" />
+      
+      <!-- วันที่เดือนปีและเวลา -->
+      <div>
+        <label for="datetime" class="block text-gray-700 text-base sm:text-lg mb-2">📅วันที่และเวลา:</label>
+        <input type="datetime-local" id="datetime" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required />
+      </div>
+
+      <!-- เลขบัตรประชาชน -->
+      <div>
+        <label for="id-card" class="block text-gray-700 text-base sm:text-lg mb-2">🆔เลขบัตรประชาชน:</label>
+        <input type="text" id="id-card" maxlength="13" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required oninput="validateIDCard()" />
+        <div id="id-card-status" class="text-red-500 mt-2 hidden"></div>
+      </div>
+
+      <!-- คำนำหน้า -->
+      <div>
+        <label for="prefix" class="block text-gray-700 text-base sm:text-lg mb-2">👤คำนำหน้า:</label>
+        <select id="prefix" class="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required>
+          <option value="นาย">นาย</option>
+          <option value="นางสาว">นางสาว</option>
+          <option value="นาง">นาง</option>
+        </select>
+      </div>
+
+      <!-- ชื่อ-สกุลเต็ม -->
+      <div>
+        <label for="fullname" class="block text-gray-700 text-base sm:text-lg mb-2">👤ชื่อ-นามสกุล:</label>
+        <input type="text" id="fullname" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required />
+      </div>
+
+      <!-- วันเดือนปีเกิด-->
+      <div>
+        <label for="birthdate" class="block text-gray-700 text-base sm:text-lg mb-2">📅วัน/เดือน/ปีเกิด (พ.ศ.):</label>
+        <input type="date" id="birthdate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required onchange="calculateAge()" />
+        <div id="age-display" class="text-blue-500 mt-2"></div>
+      </div>
+
+      <!-- ที่อยู่ตามบัตรประชาชน -->
+      <div>
+        <label for="address-id" class="block text-gray-700 text-base sm:text-lg mb-2">🏠ที่อยู่ตามบัตรประชาชน:</label>
+        <textarea id="address-id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required></textarea>
+      </div>
+
+      <!-- ที่อยู่ปัจจุบัน -->
+      <div>
+        <label for="address-current" class="block text-gray-700 text-base sm:text-lg mb-2">🏡ที่อยู่ปัจจุบัน:</label>
+        <textarea id="address-current" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required></textarea>
+      </div>
+
+      <!-- เบอร์โทร -->
+      <div>
+        <label for="phone" class="block text-gray-700 text-base sm:text-lg mb-2">📞เบอร์โทร(กรณีมากกว่า1เบอร์ให้ใช้/คั่น):</label>
+        <input type="text" id="phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required oninput="validatePhone()" />
+        <div id="phone-status" class="text-red-500 mt-2"></div>
+      </div>
+
+      <!-- สถานที่ -->
+      <div>
+        <label for="location" class="block text-gray-700 text-base sm:text-lg mb-2">🏠สถานที่:</label>
+        <input type="text" id="location" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required />
+      </div>
+
+      <!-- พิกัด -->
+      <div>
+        <label for="latlong" class="block text-gray-700 text-base sm:text-lg mb-2">📌พิกัด:</label>
+        <div class="flex flex-col sm:flex-row gap-2">
+          <input type="text" id="latlong" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required />
+          <button type="button" onclick="getLatLong()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300 btn-3d">
+            <i class="fas fa-map-marker-alt mr-2"></i> รับค่าพิกัด
+          </button>
+        </div>
+      </div>
+
+      <!-- รายละเอียด -->
+      <div>
+        <label for="details" class="block text-gray-700 text-base sm:text-lg mb-2">✏️รายละเอียด:</label>
+        <textarea id="details" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 h-32" required></textarea>
+      </div>
+
+      <!-- อัพโหลดรูป -->
+      <div>
+        <label for="image-upload" class="block text-gray-700 text-base sm:text-lg mb-2">📷อัพโหลดรูปภาพ:</label>
+        <input type="file" id="image-upload" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" accept="image/*" onchange="previewImage(event)" />
+        
+        <div class="flex flex-col sm:flex-row justify-start gap-4 mt-4">
+          <div id="current-image-container" class="hidden">
+            <p class="mb-2 text-sm">รูปภาพปัจจุบัน:</p>
+            <div class="relative inline-block">
+              <img id="current-image" class="w-40 h-40 object-cover rounded-lg border-2 border-gray-300" src="#" alt="Current Image" />
+            </div>
+          </div>
+          <div id="image-preview-container" class="hidden">
+            <p class="mb-2 text-sm">รูปภาพใหม่:</p>
+            <img id="image-preview" class="w-40 h-40 object-cover rounded-lg border-2 border-blue-500" src="#" alt="Image Preview" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ปุ่มบันทึก -->
+      <div class="flex flex-col sm:flex-row gap-2 sm:space-x-4">
+        <button type="button" id="save-button" onclick="submitData()" class="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition duration-300 btn-3d">
+          <i class="fas fa-save mr-2"></i> บันทึกข้อมูล
+        </button>
+        <button type="button" id="update-button" onclick="updateData()" class="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition duration-300 hidden btn-3d">
+          <i class="fas fa-edit mr-2"></i> แก้ไขข้อมูล
+        </button>
+        <button type="button" id="cancel-button" onclick="cancelEdit()" class="w-full bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 transition duration-300 hidden btn-3d">
+          <i class="fas fa-times mr-2"></i> ยกเลิก
+        </button>
+      </div>
+    </form>
+
+    <!-- แสดงสถานะ -->
+    <div id="status" class="mt-6 text-center"></div>
+  </div>
+
+  <!-- หน้าฐานข้อมูล -->
+  <div id="database-container" class="bg-white rounded-lg shadow-lg p-4 sm:p-8 w-full max-w-full hidden animate-fade-in">
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
+      <h1 class="text-3xl sm:text-4xl font-bold text-blue-500 mb-4 sm:mb-0">📊ฐานข้อมูลสืบสวน</h1>
+      <div class="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0 w-full sm:w-auto">
+        <button onclick="refreshDatabase()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-300 mobile-btn flex items-center justify-center btn-3d">
+          <i class="fas fa-sync-alt mr-2"></i> รีเฟรช
+        </button>
+        <button onclick="backToMainMenu()" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-300 mobile-btn flex items-center justify-center btn-3d">
+          <i class="fas fa-arrow-left mr-2"></i> กลับหน้าหลัก
+        </button>
+      </div>
+    </div>
+    
+    <!-- ช่องค้นหา -->
+    <div class="mb-6">
+      <input type="text" id="search-input" placeholder="🔍 ค้นหาโดยชื่อ, เลขบัตรประชาชน, เบอร์โทร..." 
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" 
+        oninput="searchRecords()">
+    </div>
+    
+    <!-- ตารางข้อมูล -->
+    <div class="overflow-x-auto table-responsive">
+      <table id="data-table" class="min-w-full border-collapse border border-gray-300">
+        <thead>
+          <tr class="bg-blue-500 text-white">
+            <th class="p-2 border">ลำดับ</th>
+            <th class="p-2 border">วันที่และเวลา</th>
+            <th class="p-2 border">เลขบัตรประชาชน</th>
+            <th class="p-2 border">ชื่อ-นามสกุล</th>
+            <th class="p-2 border">อายุ</th>
+            <th class="p-2 border">เบอร์โทร</th>
+            <th class="p-2 border">สถานที่</th>
+            <th class="p-2 border">รูปภาพ</th>
+            <th class="p-2 border">การจัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="data-body">
+          <!-- ข้อมูลจะถูกใส่ผ่าน JavaScript -->
+          <tr>
+            <td colspan="9" class="p-6 text-center">กำลังโหลดข้อมูล...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+      <div id="image-modal" class="hidden fixed inset-0 bg-black bg-opacity-90 z-[9999]">
+        <div class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-lg p-5 bg-white rounded-lg shadow-2xl animate-popup">
+          <button onclick="closeImageModal()" class="absolute top-2 right-2 text-gray-700 hover:text-red-500 text-2xl z-10">
+            <i class="fas fa-times"></i>
+          </button>
+          <h2 id="modal-title" class="text-xl sm:text-2xl font-bold mb-3 text-center mobile-text-lg"></h2>
+          <div class="flex justify-center items-center w-full min-h-[200px]" id="image-container">
+            <div id="image-loading" class="text-center text-gray-500">
+              <div class="loading-spinner mx-auto"></div>
+              <p class="mt-4">กำลังโหลดรูปภาพ...</p>
+            </div>
+            <img id="modal-image" class="max-w-full max-h-[60vh] object-contain hidden" src="" alt="รูปภาพขยาย" 
+                 onload="document.getElementById('image-loading').classList.add('hidden'); this.classList.remove('hidden');"
+                 onerror="handleImageError(this)">
+            <div id="image-error" class="text-center text-red-500 hidden">
+              <i class="fas fa-exclamation-triangle text-3xl mb-2"></i>
+              <p>ไม่สามารถโหลดรูปภาพได้</p>
+            </div>
+          </div>
+          <div class="mt-4 text-center">
+            <button onclick="closeImageModal()" class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition duration-300 btn-3d">
+              <i class="fas fa-times mr-2"></i> ปิด
+            </button>
+            <a id="direct-image-link" href="#" target="_blank" class="ml-2 bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition duration-300 btn-3d inline-block">
+              <i class="fas fa-external-link-alt mr-2"></i> เปิดรูปเต็ม
+            </a>
+          </div>
+        </div>
+      </div>
+
+  <!-- Modal แสดงรายละเอียด -->
+  <div id="detail-modal" class="hidden fixed inset-0 bg-black bg-opacity-90 z-[9000]">
+    <div class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-6 w-[95%] md:w-3/4 lg:w-2/3 max-h-[90vh] overflow-auto animate-popup">
+      <button onclick="closeDetailModal()" class="absolute top-2 right-2 text-gray-700 hover:text-red-500 text-2xl">
+        <i class="fas fa-times"></i>
+      </button>
+      <h2 id="detail-title" class="text-xl sm:text-2xl font-bold mb-4 text-center text-blue-500 mobile-text-lg"></h2>
+      
+      <div id="detail-content" class="space-y-4">
+        <!-- รายละเอียดจะถูกใส่ผ่าน JavaScript -->
+      </div>
+      
+      <div class="mt-6 text-center">
+        <button onclick="exportToPDF()" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition duration-300 mr-2 btn-3d pdf-btn-mobile">
+          <i class="fas fa-file-pdf mr-2"></i> ส่งออก PDF
+        </button>
+        <button onclick="closeDetailModal()" class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition duration-300 btn-3d">
+          <i class="fas fa-times mr-2"></i> ปิด
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ตัวแปรหลัก
+    const passwordInput = document.getElementById('password');
+    const passwordStatus = document.getElementById('password-status');
+    const loading = document.getElementById('loading');
+    const passwordContainer = document.getElementById('password-container');
+    const mainMenu = document.getElementById('main-menu');
+    const formContainer = document.getElementById('form-container');
+    const databaseContainer = document.getElementById('database-container');
+    const idCardInput = document.getElementById('id-card');
+    const idCardStatus = document.getElementById('id-card-status');
+    const phoneInput = document.getElementById('phone');
+    const phoneStatus = document.getElementById('phone-status');
+    const birthdateInput = document.getElementById('birthdate');
+    const ageDisplay = document.getElementById('age-display');
+    const imageUpload = document.getElementById('image-upload');
+    const saveButton = document.getElementById('save-button');
+    const updateButton = document.getElementById('update-button');
+    const cancelButton = document.getElementById('cancel-button');
+    const recordIdInput = document.getElementById('record-id');
+    const existingImageUrlInput = document.getElementById('existing-image-url');
+    const currentImageContainer = document.getElementById('current-image-container');
+    const currentImage = document.getElementById('current-image');
+    
+    let isEditMode = false;
+    let currentRecord = null; // เก็บข้อมูลบันทึกปัจจุบันสำหรับ PDF
+    
+    // แปลงเดือนภาษาอังกฤษเป็นภาษาไทย
+    const monthNamesEN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const monthNamesTH = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+    const shortMonthNamesTH = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+    
+    // ฟังก์ชันแปลงวันที่เป็นรูปแบบไทย
+    function formatThaiDateTime(dateTimeStr, includeTime = true) {
+      if (!dateTimeStr) return "-";
+      
+      const date = new Date(dateTimeStr);
+      if (isNaN(date.getTime())) return dateTimeStr;
+      
+      const day = date.getDate();
+      const month = shortMonthNamesTH[date.getMonth()];
+      const year = date.getFullYear() + 543;
+      
+      let thaiDate = `${day} ${month} ${year}`;
+      
+      if (includeTime) {
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        thaiDate += ` ${hours}:${minutes} น.`;
+      }
+      
+      return thaiDate;
+    }
+    
+    // ฟังก์ชันแปลงรูปแบบวันที่ไทย (กรณีที่เป็นสตริงวัน/เดือน/ปี)
+    function formatThaiDateString(dateStr) {
+      if (!dateStr) return "-";
+      
+      console.log("Input date string:", dateStr);
+      
+      // ตรวจสอบรูปแบบ วัน/เดือน/ปี
+      const parts = dateStr.split('/');
+      if (parts.length === 3) {
+        try {
+          const day = parseInt(parts[0]);
+          const month = parseInt(parts[1]);
+          const year = parseInt(parts[2]);
+          
+          console.log(`Parsed as day/month/year: ${day}/${month}/${year}`);
+          
+          // ถ้าเป็นเลขถูกต้อง ให้แปลงเป็นรูปแบบภาษาไทย
+          if (!isNaN(day) && !isNaN(month) && !isNaN(year) && month >= 1 && month <= 12) {
+            // ตรวจสอบว่าเป็นปี พ.ศ. หรือ ค.ศ.
+            let fullYear = year;
+            if (year < 100) { // ปีแบบย่อ เช่น 66 -> 2566
+              fullYear = year + 2500;
+            } else if (year >= 100 && year < 2000) { // ปีในช่วง 100-1999 -> น่าจะเป็นพุทธศักราชอยู่แล้ว
+              fullYear = year;
+            } else if (year >= 2000 && year < 2500) { // ปี ค.ศ. เช่น 2023 -> 2566
+              fullYear = year + 543;
+            } else if (year >= 2500) { // ถ้ามากกว่า 2500 ถือว่าเป็น พ.ศ. อยู่แล้ว แต่ถ้ามากเกินไป อาจจะเป็น ค.ศ.
+              if (year - 543 >= 2000 && year - 543 < 2100) { // ตรวจสอบว่าถ้าลบ 543 แล้วอยู่ในช่วง ค.ศ. ที่น่าจะเป็นไปได้
+                fullYear = year - 543 + 543; // เอาไว้แบบเดิม
+              } else {
+                fullYear = year; // เป็น พ.ศ. อยู่แล้ว
+              }
+            }
+            
+            const result = `${day} ${monthNamesTH[month-1]} ${fullYear}`;
+            console.log("Returning formatted date:", result);
+            return result;
+          }
+        } catch (e) {
+          console.error("Error parsing date string:", e);
+        }
+      }
+      
+      // ลองแปลงจากรูปแบบอื่นๆ
+      try {
+        // ลองแปลงจากรูปแบบ ISO หรือรูปแบบอื่นๆ ที่ JavaScript รองรับ
+        const date = new Date(dateStr);
+        if (!isNaN(date.getTime())) {
+          const day = date.getDate();
+          const month = date.getMonth();
+          const year = date.getFullYear();
+          
+          console.log(`Parsed date object: ${day}/${month+1}/${year}`);
+          
+          // ตรวจสอบว่าปีเป็น พ.ศ. หรือ ค.ศ.
+          let thaiYear = year;
+          
+          // เป็น ค.ศ. ต้องบวก 543
+          if (year >= 1900 && year < 2100) {
+            thaiYear = year + 543; 
+          }
+          
+          const result = `${day} ${monthNamesTH[month]} ${thaiYear}`;
+          console.log("Returning formatted date from Date object:", result);
+          return result;
+        }
+      } catch (e) {
+        console.error("Error converting date format:", e);
+      }
+      
+      // ถ้าไม่ตรงกับรูปแบบที่คาดหวัง หรือเกิดข้อผิดพลาด ให้คืนค่าเดิม
+      return dateStr;
+    }
+    
+    // ฟังชั่นตรวจสอบเลขบัตรว่าครบถ้วนหรือไม่
+    function validateIDCard() {
+      const idCard = idCardInput.value;
+      if (idCard.length !== 13 || isNaN(idCard)) {
+        idCardStatus.textContent = '❌กรุณากรอกเลขบัตรประชาชนให้ครบ13หลัก';
+        idCardStatus.classList.remove('hidden');
+        return false;
+      } else {
+        idCardStatus.textContent = '';
+        idCardStatus.classList.add('hidden');
+        return true;
+      }
+    }
+
+    // ตรวจสอบเบอร์โทรว่ากรอกข้อมูลถูกต้องหรือไม่
+    function validatePhone() {
+      const phoneNumbers = phoneInput.value.split('/').map(num => num.trim());
+      let isValid = true;
+      let errorMessages = [];
+
+      phoneNumbers.forEach((phone, index) => {
+        if (!/^0[0-9]{9}$/.test(phone)) {
+          isValid = false;
+          errorMessages.push(`❌เบอร์โทรที่${index + 1}: "${phone}" ไม่ถูกต้อง(ต้องขึ้นต้นด้วย0และตามด้วย9หลัก)`);
+        }
+      });
+
+      if (!isValid) {
+        phoneStatus.innerHTML = errorMessages.join('<br>');
+        return false;
+      } else {
+        phoneStatus.textContent = '';
+        return true;
+      }
+    }
+
+    // ฟังชั่นตรวจสอบPassword เรียกถามจากGoogleScript
+    function checkPassword() {
+      const password = passwordInput.value;
+      showLoading();
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          hideLoading();
+          if (response.status === 'success') {
+            passwordContainer.classList.add('hidden');
+            mainMenu.classList.remove('hidden');
+          } else {
+            Swal.fire({
+              title: "รหัสผ่านไม่ถูกต้อง",
+              text: "กรุณากรอกรหัสผ่านอีกครั้ง",
+              icon: "error",
+              confirmButtonText: "ตกลง",
+            });
+            passwordStatus.textContent = '';
+          }
+        })
+        .withFailureHandler(function(error) {
+          hideLoading();
+          Swal.fire({
+            title: "เกิดข้อผิดพลาด",
+            text: "ไม่สามารถตรวจสอบรหัสผ่านได้: " + error.message,
+            icon: "error",
+            confirmButtonText: "ตกลง",
+          });
+        })
+        .checkPassword(password);
+    }
+    
+    // ฟังก์ชันออกจากระบบ
+    function logout() {
+      Swal.fire({
+        title: "ต้องการออกจากระบบ?",
+        text: "คุณกำลังจะออกจากระบบ Detective-X",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "ออกจากระบบ",
+        cancelButtonText: "ยกเลิก"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          mainMenu.classList.add('hidden');
+          passwordContainer.classList.remove('hidden');
+          passwordInput.value = '';
+        }
+      });
+    }
+    
+    // ฟังก์ชันไปที่หน้าหลัก
+    function backToMainMenu() {
+      resetForm();
+      formContainer.classList.add('hidden');
+      databaseContainer.classList.add('hidden');
+      mainMenu.classList.remove('hidden');
+    }
+    
+    // ฟังก์ชันแสดงฟอร์ม
+    function showForm() {
+      mainMenu.classList.add('hidden');
+      formContainer.classList.remove('hidden');
+      // ตั้งค่าเริ่มต้นวันที่
+      const now = new Date();
+      const localDatetime = new Date(now.getTime() - (now.getTimezoneOffset() * 60000))
+        .toISOString()
+        .slice(0, 16);
+      document.getElementById('datetime').value = localDatetime;
+    }
+    
+    // ฟังก์ชันแสดงฐานข้อมูล
+    function showDatabase() {
+      mainMenu.classList.add('hidden');
+      databaseContainer.classList.remove('hidden');
+      
+      // แสดงข้อความกำลังโหลด
+      const tableBody = document.getElementById('data-body');
+      tableBody.innerHTML = '<tr><td colspan="9" class="p-6 text-center">กำลังโหลดข้อมูล... <i class="fas fa-spinner fa-spin"></i></td></tr>';
+      
+      // สั่งโหลดข้อมูล
+      fetchRecords();
+    }
+    
+    // ฟังก์ชันดึงข้อมูลทั้งหมดจากฐานข้อมูล
+    function fetchRecords() {
+      showLoading();
+      
+      // แสดงข้อความกำลังโหลด
+      document.getElementById('data-body').innerHTML = `
+        <tr>
+          <td colspan="9" class="p-6 text-center">
+            <div class="flex flex-col items-center justify-center">
+              <div class="loading-spinner mb-4"></div>
+              <p>กำลังโหลดข้อมูลจากเซิร์ฟเวอร์...</p>
+            </div>
+          </td>
+        </tr>
+      `;
+      
+      try {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            hideLoading();
+            
+            console.log("Server response (fetchRecords):", response);
+            
+            // ตรวจสอบว่าได้รับข้อมูลหรือไม่
+            if (response === undefined || response === null) {
+              console.error("ไม่มีข้อมูลที่ได้รับจากเซิร์ฟเวอร์");
+              document.getElementById('data-body').innerHTML = `
+                <tr>
+                  <td colspan="9" class="p-6 text-center text-red-500">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    ไม่สามารถเชื่อมต่อกับฐานข้อมูลได้ โปรดลองอีกครั้ง
+                  </td>
+                </tr>
+              `;
+              return;
+            }
+            
+            // ตรวจสอบว่าเป็นข้อผิดพลาดหรือไม่
+            if (response && response.status === 'error') {
+              console.error("Server error:", response.message);
+              Swal.fire({
+                title: "เกิดข้อผิดพลาด",
+                text: response.message || "ไม่สามารถดึงข้อมูลได้",
+                icon: "error",
+                confirmButtonText: "ตกลง",
+              });
+              return;
+            }
+            
+            // ตรวจสอบว่า response เป็น array หรือไม่
+            if (Array.isArray(response)) {
+              console.log("จำนวนข้อมูลที่ได้รับ:", response.length);
+              displayRecords(response);
+            } else {
+              console.error("ข้อมูลที่ได้รับไม่ใช่อาร์เรย์:", response);
+              document.getElementById('data-body').innerHTML = `
+                <tr>
+                  <td colspan="9" class="p-6 text-center text-red-500">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    ข้อมูลที่ได้รับไม่ถูกต้อง โปรดติดต่อผู้ดูแลระบบ
+                  </td>
+                </tr>
+              `;
+            }
+          })
+          .withFailureHandler(function(error) {
+            hideLoading();
+            console.error("Error fetching records:", error);
+            
+            document.getElementById('data-body').innerHTML = `
+              <tr>
+                <td colspan="9" class="p-6 text-center text-red-500">
+                  <i class="fas fa-exclamation-triangle mr-2"></i>
+                  เกิดข้อผิดพลาดในการเชื่อมต่อกับฐานข้อมูล 
+                  <button onclick="refreshDatabase()" class="ml-2 bg-blue-500 text-white px-3 py-1 rounded btn-3d">
+                    ลองใหม่
+                  </button>
+                </td>
+              </tr>
+            `;
+          })
+          .getRecords();
+      } catch (e) {
+        hideLoading();
+        console.error("Client-side error:", e);
+        document.getElementById('data-body').innerHTML = `
+          <tr>
+            <td colspan="9" class="p-6 text-center text-red-500">
+              <i class="fas fa-exclamation-triangle mr-2"></i>
+              เกิดข้อผิดพลาดที่ไม่คาดคิด: ${e.message}
+            </td>
+          </tr>
+        `;
+      }
+    }
+    
+    // ฟังก์ชันรีเฟรชข้อมูล
+    function refreshDatabase() {
+      document.getElementById('search-input').value = '';
+      fetchRecords();
+    }
+    
+    // ฟังก์ชันแสดงข้อมูลในตาราง
+    function displayRecords(records) {
+      const tableBody = document.getElementById('data-body');
+      tableBody.innerHTML = '';
+      
+      if (!records || records.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="9" class="p-6 text-center">ไม่พบข้อมูล</td></tr>';
+        return;
+      }
+      
+      console.log("กำลังแสดงข้อมูล " + records.length + " รายการ");
+      
+      records.forEach((record, index) => {
+        const row = document.createElement('tr');
+        row.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+        
+        // ตรวจสอบค่า null หรือ undefined และแทนด้วยค่าว่าง
+        const safePrefix = record.prefix || '';
+        const safeFullName = record.fullName || '';
+        const safeIdCard = record.idCard || '';
+        const safeAge = record.age || '';
+        const safePhone = record.phone || '';
+        const safeLocation = record.location || '';
+        
+        const hasImage = record.imageUrl && record.imageUrl.trim() !== '';
+        
+        // สร้างชื่อที่ถูกต้องสำหรับใช้ใน onclick โดยทำ escape single quotes
+        const escapedName = (safePrefix + ' ' + safeFullName).replace(/'/g, "\\'");
+        const escapedUrl = record.imageUrl ? record.imageUrl.replace(/'/g, "\\'") : '';
+        
+        row.innerHTML = `
+          <td class="p-2 border text-center">${index + 1}</td>
+          <td class="p-2 border thai-date">${formatThaiDateTime(record.datetime)}</td>
+          <td class="p-2 border">${safeIdCard}</td>
+          <td class="p-2 border">${safePrefix} ${safeFullName}</td>
+          <td class="p-2 border text-center">${safeAge}</td>
+          <td class="p-2 border">${safePhone}</td>
+          <td class="p-2 border">${safeLocation}</td>
+          <td class="p-2 border text-center">
+            ${hasImage ? `
+              <button onclick="showImage('${escapedUrl}', '${escapedName}')" 
+                class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition duration-300 btn-3d">
+                <i class="fas fa-image"></i> ดูรูป
+              </button>
+            ` : 'ไม่มีรูป'}
+          </td>
+          <td class="p-2 border">
+            <div class="flex flex-col space-y-1 md:flex-row md:space-y-0 md:space-x-1">
+              <button onclick="viewDetails(${index})" 
+                class="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600 transition duration-300 btn-3d">
+                <i class="fas fa-eye"></i> ดูข้อมูล
+              </button>
+              <button onclick="editRecord(${index})" 
+                class="bg-yellow-500 text-white px-2 py-1 rounded text-sm hover:bg-yellow-600 transition duration-300 btn-3d">
+                <i class="fas fa-edit"></i> แก้ไข
+              </button>
+              <button onclick="confirmDeleteRecord(${index})" 
+                class="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600 transition duration-300 btn-3d">
+                <i class="fas fa-trash"></i> ลบ
+              </button>
+            </div>
+          </td>
+        `;
+        
+        tableBody.appendChild(row);
+      });
+      
+      // เก็บข้อมูลไว้ใช้ตอนค้นหาและแก้ไข
+      window.allRecords = records;
+    }
+    
+    // ฟังก์ชันค้นหาข้อมูล
+    function searchRecords() {
+      const searchTerm = document.getElementById('search-input').value.toLowerCase();
+      
+      if (!window.allRecords) return;
+      
+      let filteredRecords;
+      
+      if (searchTerm.trim() === '') {
+        filteredRecords = window.allRecords;
+      } else {
+        filteredRecords = window.allRecords.filter(record => {
+          return (
+            (record.idCard && record.idCard.toLowerCase().includes(searchTerm)) ||
+            (record.fullName && record.fullName.toLowerCase().includes(searchTerm)) ||
+            (record.phone && record.phone.toLowerCase().includes(searchTerm)) ||
+            (record.location && record.location.toLowerCase().includes(searchTerm))
+          );
+        });
+      }
+      
+      displayRecords(filteredRecords);
+    }
+    
+    // ฟังก์ชันเปิดโมดอลรูปภาพ
+    function showImage(imageUrl, personName) {
+      // ป้องกันการขยายภาพหากกดจากภายในโมดอลรายละเอียด
+      if (event && event.stopPropagation) {
+        event.stopPropagation();
+      }
+      
+      const modalImage = document.getElementById('modal-image');
+      const modalTitle = document.getElementById('modal-title');
+      const directImageLink = document.getElementById('direct-image-link');
+      const imageLoading = document.getElementById('image-loading');
+      const imageError = document.getElementById('image-error');
+      
+      // รีเซ็ตสถานะ
+      modalImage.classList.add('hidden');
+      imageLoading.classList.remove('hidden');
+      imageError.classList.add('hidden');
+      
+      // กำหนดข้อมูล
+      modalTitle.textContent = `รูปภาพของ ${personName}`;
+      modalImage.src = imageUrl;
+      directImageLink.href = imageUrl;
+      
+      // แสดงโมดอล
+      document.getElementById('image-modal').classList.remove('hidden');
+      
+      // ล็อกข้อมูลสำหรับตรวจสอบ
+      console.log("แสดงรูปภาพ:", imageUrl);
+    }
+    
+    // ฟังก์ชันจัดการกรณีโหลดรูปภาพไม่สำเร็จ
+    function handleImageError(imgElement) {
+      console.error("ไม่สามารถโหลดรูปภาพได้:", imgElement.src);
+      document.getElementById('image-loading').classList.add('hidden');
+      document.getElementById('image-error').classList.remove('hidden');
+      imgElement.classList.add('hidden');
+    }
+    
+    // ฟังก์ชันปิดโมดอลรูปภาพ
+    function closeImageModal() {
+      document.getElementById('image-modal').classList.add('hidden');
+      
+      // รีเซ็ตข้อมูลรูปภาพ
+      setTimeout(() => {
+        document.getElementById('modal-image').src = '';
+      }, 300);
+    }
+    
+    // ฟังก์ชันดูรายละเอียด
+    function viewDetails(index) {
+      const record = window.allRecords[index];
+      currentRecord = record; // เก็บไว้สำหรับใช้ในการส่งออก PDF
+      const detailTitle = document.getElementById('detail-title');
+      const detailContent = document.getElementById('detail-content');
+      
+      detailTitle.textContent = `ข้อมูลของ ${record.prefix || ''} ${record.fullName || ''}`;
+      
+      const hasImage = record.imageUrl && record.imageUrl.trim() !== '';
+      
+      // ทำการเอสเคป URL และชื่อเพื่อป้องกันการหลุดของเครื่องหมายคำพูด
+      const escapedImageUrl = hasImage ? record.imageUrl.replace(/'/g, "\\'") : '';
+      const escapedName = `${(record.prefix || '')} ${(record.fullName || '')}`.replace(/'/g, "\\'");
+      
+      // ตรวจสอบและแปลงวันที่ให้เป็นไทย
+      let birthDateThai = "-";
+      if (record.birthdate) {
+        try {
+          console.log("Original birthdate in viewDetails:", record.birthdate);
+          birthDateThai = formatThaiDateString(record.birthdate);
+          console.log("Formatted birthdate in viewDetails:", birthDateThai);
+        } catch (error) {
+          console.error("Error formatting birthdate:", error);
+          birthDateThai = record.birthdate;
+        }
+      }
+      
+      detailContent.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="pdf-content">
+          <div class="space-y-4">
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <h3 class="text-lg font-semibold text-blue-600 mb-3 border-b border-gray-300 pb-2">ข้อมูลทั่วไป</h3>
+              <div class="grid grid-cols-1 gap-3">
+                <div>
+                  <p class="text-gray-600 text-sm">วันที่และเวลา:</p>
+                  <p class="font-medium thai-date">${formatThaiDateTime(record.datetime)}</p>
+                </div>
+                <div>
+                  <p class="text-gray-600 text-sm">เลขบัตรประชาชน:</p>
+                  <p class="font-medium">${record.idCard || '-'}</p>
+                </div>
+                <div>
+                  <p class="text-gray-600 text-sm">ชื่อ-นามสกุล:</p>
+                  <p class="font-medium">${record.prefix || ''} ${record.fullName || '-'}</p>
+                </div>
+                <div>
+                  <p class="text-gray-600 text-sm">วันเกิด:</p>
+                  <p class="font-medium thai-date">${birthDateThai}</p>
+                </div>
+                <div>
+                  <p class="text-gray-600 text-sm">อายุ:</p>
+                  <p class="font-medium">${record.age || '-'} ปี</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <h3 class="text-lg font-semibold text-blue-600 mb-3 border-b border-gray-300 pb-2">ที่อยู่</h3>
+              <div class="grid grid-cols-1 gap-3">
+                <div>
+                  <p class="text-gray-600 text-sm">ที่อยู่ตามบัตรประชาชน:</p>
+                  <p class="font-medium">${record.addressId || '-'}</p>
+                </div>
+                <div>
+                  <p class="text-gray-600 text-sm">ที่อยู่ปัจจุบัน:</p>
+                  <p class="font-medium">${record.addressCurrent || '-'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="space-y-4">
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <h3 class="text-lg font-semibold text-blue-600 mb-3 border-b border-gray-300 pb-2">การติดต่อและสถานที่</h3>
+              <div class="grid grid-cols-1 gap-3">
+                <div>
+                  <p class="text-gray-600 text-sm">เบอร์โทร:</p>
+                  <p class="font-medium">${record.phone || '-'}</p>
+                </div>
+                <div>
+                  <p class="text-gray-600 text-sm">สถานที่:</p>
+                  <p class="font-medium">${record.location || '-'}</p>
+                </div>
+                <div>
+                  <p class="text-gray-600 text-sm">พิกัด:</p>
+                  <p class="font-medium">${record.latlong || '-'}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <h3 class="text-lg font-semibold text-blue-600 mb-3 border-b border-gray-300 pb-2">รายละเอียด</h3>
+              <p class="whitespace-pre-line">${record.details || '-'}</p>
+            </div>
+            
+            ${hasImage ? `
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h3 class="text-lg font-semibold text-blue-600 mb-3 border-b border-gray-300 pb-2">รูปภาพ</h3>
+                <div class="flex justify-center">
+                  <div class="relative">
+                    <img src="${record.imageUrl}" alt="รูปภาพของ ${record.fullName}" 
+                      class="w-48 h-48 object-cover rounded-lg border-2 border-gray-300 pdf-image">
+                    <button onclick="event.stopPropagation(); showImage('${escapedImageUrl}', '${escapedName}')" 
+                      class="absolute bottom-2 right-2 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition duration-300 pdf-hide">
+                      <i class="fas fa-search-plus"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ` : '<div class="bg-gray-50 p-4 rounded-lg"><h3 class="text-lg font-semibold text-blue-600 mb-3 border-b border-gray-300 pb-2">รูปภาพ</h3><p class="text-center text-gray-500">ไม่มีรูปภาพ</p></div>'}
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('detail-modal').classList.remove('hidden');
+    }
+    
+    // ฟังก์ชันปิดโมดอลรายละเอียด
+    function closeDetailModal() {
+      document.getElementById('detail-modal').classList.add('hidden');
+      currentRecord = null;
+    }
+    
+    // ฟังก์ชันส่งออกเป็น PDF
+    function exportToPDF() {
+      if (!currentRecord) {
+        Swal.fire({
+          title: "เกิดข้อผิดพลาด",
+          text: "ไม่พบข้อมูลสำหรับส่งออก",
+          icon: "error",
+          confirmButtonText: "ตกลง",
+        });
+        return;
+      }
+      
+      showLoading();
+      
+      // ซ่อนปุ่มขยายรูปก่อนทำการจับภาพ
+      const pdfHideElements = document.querySelectorAll('.pdf-hide');
+      pdfHideElements.forEach(el => el.style.display = 'none');
+      
+      // ขยายรูปภาพให้ใหญ่ขึ้น
+      const pdfImages = document.querySelectorAll('.pdf-image');
+      pdfImages.forEach(img => {
+        img.style.width = '240px';
+        img.style.height = '240px';
+      });
+      
+      try {
+        // ลองใช้วิธีแปลงเนื้อหาเป็นรูปภาพก่อนสร้าง PDF เพื่อแก้ปัญหาฟอนต์ภาษาไทย
+        const pdfContent = document.getElementById('pdf-content');
+        
+        // ใช้ html2canvas เพื่อแปลง HTML ไปเป็นรูปภาพ
+        html2canvas(pdfContent, {
+          scale: 2, // เพิ่มความละเอียด
+          useCORS: true, // อนุญาตให้ใช้รูปภาพจาก URL ภายนอก
+          logging: false,
+          letterRendering: true,
+          allowTaint: true
+        }).then(canvas => {
+          try {
+            // แปลง canvas เป็นรูปภาพ
+            const imgData = canvas.toDataURL('image/png');
+            
+            // เตรียม jsPDF
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            
+            // สร้างหัวเอกสารที่เป็นภาษาไทย
+            // สร้างแคนวาสสำหรับหัวเอกสาร
+            const headerCanvas = document.createElement('canvas');
+            headerCanvas.width = 2100; // 10x กว้างกว่าเพื่อให้คมชัด
+            headerCanvas.height = 500;
+            const headerCtx = headerCanvas.getContext('2d');
+            
+            // วาดพื้นหลังสีฟ้า
+            headerCtx.fillStyle = '#3B82F6'; // bg-blue-500
+            headerCtx.fillRect(0, 0, 2100, 500);
+            
+            // ใส่ข้อความสีขาว - ชื่อเอกสาร
+            headerCtx.fillStyle = '#FFFFFF';
+            headerCtx.font = 'bold 120px Kanit, sans-serif';
+            headerCtx.textAlign = 'center';
+            headerCtx.fillText('ข้อมูลบันทึกสืบสวน', 1050, 150);
+            
+            // ข้อความชื่อบุคคล
+            headerCtx.font = 'bold 80px Kanit, sans-serif';
+            headerCtx.fillText(`ข้อมูลของ ${currentRecord.prefix || ''} ${currentRecord.fullName || ''}`, 1050, 250);
+            
+            // เพิ่มเลขบัตรประชาชน
+            headerCtx.font = '70px Kanit, sans-serif';
+            headerCtx.fillText(`เลขบัตรประชาชน: ${currentRecord.idCard || 'ไม่ระบุ'}`, 1050, 350);
+            
+            // วันที่พิมพ์
+            headerCtx.font = '60px Kanit, sans-serif';
+            headerCtx.fillText(`วันที่พิมพ์: ${formatThaiDateTime(new Date())}`, 1050, 450);
+            
+            // แปลงแคนวาสเป็นรูปภาพ
+            const headerImgData = headerCanvas.toDataURL('image/png');
+            
+            // คำนวณความสูงและความกว้างให้พอดีกับ A4
+            const imgWidth = 210; // A4 width in mm (297 is height)
+            const pageHeight = 297;
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+            let heightLeft = imgHeight;
+            
+            // หน้าแรก - เพิ่มส่วนหัวและเนื้อหา
+            doc.addImage(headerImgData, 'PNG', 0, 0, 210, 50);
+            
+            // วาดเส้นแบ่ง
+            doc.setDrawColor(220, 220, 220);
+            doc.setLineWidth(0.5);
+            doc.line(10, 52, 200, 52);
+            
+            // เริ่มต้นเนื้อหา
+            let position = 55;
+            
+            // เพิ่มเนื้อหาจากภาพที่จับได้จาก canvas
+            doc.addImage(imgData, 'PNG', 10, position, imgWidth - 20, imgHeight);
+            
+            // ถ้ามีหลายหน้า
+            heightLeft -= (pageHeight - position);
+            
+            while (heightLeft > 0) {
+              position = 0; // เริ่มต้นที่ด้านบนของหน้าใหม่
+              doc.addPage();
+              
+              // สร้างแคนวาสสำหรับหัวเอกสารหน้าต่อไป
+              const nextHeaderCanvas = document.createElement('canvas');
+              nextHeaderCanvas.width = 2100;
+              nextHeaderCanvas.height = 200;
+              const nextHeaderCtx = nextHeaderCanvas.getContext('2d');
+              
+              // วาดพื้นหลังสีฟ้า
+              nextHeaderCtx.fillStyle = '#3B82F6';
+              nextHeaderCtx.fillRect(0, 0, 2100, 200);
+              
+              // ใส่ข้อความสีขาว
+              nextHeaderCtx.fillStyle = '#FFFFFF';
+              nextHeaderCtx.font = 'bold 80px Kanit, sans-serif';
+              nextHeaderCtx.textAlign = 'center';
+              nextHeaderCtx.fillText('ข้อมูลบันทึกสืบสวน (ต่อ)', 1050, 120);
+              
+              // แปลงแคนวาสเป็นรูปภาพ
+              const nextHeaderImgData = nextHeaderCanvas.toDataURL('image/png');
+              
+              // ใส่หัวเอกสารลงใน PDF
+              doc.addImage(nextHeaderImgData, 'PNG', 0, 0, 210, 20);
+              doc.setDrawColor(220, 220, 220);
+              doc.setLineWidth(0.5);
+              doc.line(10, 22, 200, 22);
+              
+              // ปรับตำแหน่งสำหรับเนื้อหา
+              position = 25;
+              
+              doc.addImage(imgData, 'PNG', 10, position - (pageHeight - 55), imgWidth - 20, imgHeight);
+              heightLeft -= (pageHeight - 25);
+            }
+            
+            // เพิ่มเลขหน้า (ใช้แคนวาสเพื่อรองรับภาษาไทย)
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+              doc.setPage(i);
+              
+              const pageCanvas = document.createElement('canvas');
+              pageCanvas.width = 1000;
+              pageCanvas.height = 100;
+              const pageCtx = pageCanvas.getContext('2d');
+              pageCtx.font = '40px Kanit, sans-serif';
+              pageCtx.fillStyle = '#646464';
+              pageCtx.textAlign = 'center';
+              pageCtx.fillText(`หน้า ${i} จาก ${pageCount}`, 500, 50);
+              const pageImgData = pageCanvas.toDataURL('image/png');
+              doc.addImage(pageImgData, 'PNG', 55, 290, 100, 10);
+            }
+            
+            // สร้าง timestamp สำหรับชื่อไฟล์
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const fileName = `Detective-X_${currentRecord.fullName || 'Record'}_${timestamp}.pdf`;
+            
+            // ใช้วิธีการส่งออกแบบเดียวกันสำหรับทุกอุปกรณ์
+            // ดาวน์โหลด PDF โดยตรงเหมือนกันทุกอุปกรณ์
+            doc.save(fileName);
+            
+            // คืนค่าการแสดงผลปุ่มขยายและขนาดรูป
+            pdfHideElements.forEach(el => el.style.display = 'block');
+            pdfImages.forEach(img => {
+              img.style.width = '';
+              img.style.height = '';
+            });
+            
+            hideLoading();
+            
+            Swal.fire({
+              title: "ส่งออกสำเร็จ",
+              text: "บันทึกข้อมูลเป็นไฟล์ PDF เรียบร้อยแล้ว",
+              icon: "success",
+              confirmButtonText: "ตกลง",
+            });
+            
+          } catch (error) {
+            // คืนค่าการแสดงผลปุ่มขยายและขนาดรูป
+            pdfHideElements.forEach(el => el.style.display = 'block');
+            pdfImages.forEach(img => {
+              img.style.width = '';
+              img.style.height = '';
+            });
+            
+            hideLoading();
+            console.error("Error generating PDF:", error);
+            
+            Swal.fire({
+              title: "เกิดข้อผิดพลาด",
+              text: "ไม่สามารถสร้างไฟล์ PDF ได้: " + error.message,
+              icon: "error",
+              confirmButtonText: "ตกลง",
+            });
+          }
+        }).catch(error => {
+          // คืนค่าการแสดงผลปุ่มขยายและขนาดรูป
+          pdfHideElements.forEach(el => el.style.display = 'block');
+          pdfImages.forEach(img => {
+            img.style.width = '';
+            img.style.height = '';
+          });
+          
+          hideLoading();
+          console.error("Error generating canvas:", error);
+          
+          Swal.fire({
+            title: "เกิดข้อผิดพลาด",
+            text: "ไม่สามารถสร้างไฟล์ PDF ได้: " + error.message,
+            icon: "error",
+            confirmButtonText: "ตกลง",
+          });
+        });
+      } catch (e) {
+        // คืนค่าการแสดงผลปุ่มขยายและขนาดรูป
+        pdfHideElements.forEach(el => el.style.display = 'block');
+        pdfImages.forEach(img => {
+          img.style.width = '';
+          img.style.height = '';
+        });
+        
+        hideLoading();
+        console.error("Error:", e);
+        
+        Swal.fire({
+          title: "เกิดข้อผิดพลาด",
+          text: "ไม่สามารถสร้างไฟล์ PDF ได้: " + e.message,
+          icon: "error",
+          confirmButtonText: "ตกลง",
+        });
+      }
+    }
+    
+    // ฟังก์ชันแก้ไขข้อมูล
+    function editRecord(index) {
+      const record = window.allRecords[index];
+      isEditMode = true;
+      
+      // เปลี่ยนหน้าไปที่ฟอร์ม
+      databaseContainer.classList.add('hidden');
+      formContainer.classList.remove('hidden');
+      
+      // เก็บค่า ID บันทึก
+      recordIdInput.value = record.id;
+      
+      // กำหนดค่าให้กับฟอร์ม
+      document.getElementById('datetime').value = record.datetime;
+      idCardInput.value = record.idCard;
+      document.getElementById('prefix').value = record.prefix;
+      document.getElementById('fullname').value = record.fullName;
+      
+      // แปลงวันเดือนปีเกิดกลับเป็นรูปแบบที่ input type="date" ต้องการ
+      // ถ้าอยู่ในรูปแบบ วัน/เดือน/ปี พ.ศ.
+      if (record.birthdate) {
+        try {
+          const parts = record.birthdate.split('/');
+          if (parts.length === 3) {
+            const day = parseInt(parts[0]);
+            const month = parseInt(parts[1]);
+            const yearBE = parseInt(parts[2]);
+            const yearAD = yearBE - 543;
+            
+            const dateString = `${yearAD}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+            birthdateInput.value = dateString;
+          }
+        } catch (error) {
+          console.error("Error parsing birthdate:", error);
+        }
+      }
+      calculateAge();
+      
+      document.getElementById('address-id').value = record.addressId;
+      document.getElementById('address-current').value = record.addressCurrent;
+      phoneInput.value = record.phone;
+      document.getElementById('location').value = record.location;
+      document.getElementById('latlong').value = record.latlong;
+      document.getElementById('details').value = record.details;
+      
+      // แสดงรูปภาพที่มีอยู่
+      if (record.imageUrl && record.imageUrl.trim() !== '') {
+        existingImageUrlInput.value = record.imageUrl;
+        currentImage.src = record.imageUrl;
+        currentImageContainer.classList.remove('hidden');
+      } else {
+        existingImageUrlInput.value = '';
+        currentImageContainer.classList.add('hidden');
+      }
+      
+      // ซ่อนปุ่มบันทึก แสดงปุ่มอัพเดตและยกเลิก
+      saveButton.classList.add('hidden');
+      updateButton.classList.remove('hidden');
+      cancelButton.classList.remove('hidden');
+    }
+    
+    // ฟังก์ชันยกเลิกการแก้ไข
+    function cancelEdit() {
+      resetForm();
+      
+      databaseContainer.classList.remove('hidden');
+      formContainer.classList.add('hidden');
+    }
+    
+    // ฟังก์ชันรีเซ็ตฟอร์ม
+    function resetForm() {
+      isEditMode = false;
+      recordIdInput.value = '';
+      existingImageUrlInput.value = '';
+      document.getElementById('field-form').reset();
+      
+      // ซ่อนรูปภาพปัจจุบันและพรีวิว
+      currentImageContainer.classList.add('hidden');
+      document.getElementById('image-preview-container').classList.add('hidden');
+      
+      // แสดงปุ่มบันทึก ซ่อนปุ่มอัพเดตและยกเลิก
+      saveButton.classList.remove('hidden');
+      updateButton.classList.add('hidden');
+      cancelButton.classList.add('hidden');
+      
+      // รีเซ็ตข้อความสถานะ
+      idCardStatus.textContent = '';
+      idCardStatus.classList.add('hidden');
+      phoneStatus.textContent = '';
+      ageDisplay.textContent = '';
+    }
+    
+    // ฟังชั่นเก็บ Lat,Long พิกัด
+    function getLatLong() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+          document.getElementById('latlong').value = `${position.coords.latitude}, ${position.coords.longitude}`;
+        }, error => {
+          Swal.fire({
+            title: "ไม่สามารถดึงข้อมูลพิกัดได้",
+            text: error.message,
+            icon: "error",
+            confirmButtonText: "ตกลง",
+          });
+        });
+      } else {
+        Swal.fire({
+          title: "เบราว์เซอร์ไม่รองรับ",
+          text: "เบราว์เซอร์ของคุณไม่รองรับการใช้ฟังก์ชันพิกัด",
+          icon: "error",
+          confirmButtonText: "ตกลง",
+        });
+      }
+    }
+
+    // ฟังชั่นคำนวณอายุ
+    function calculateAge() {
+      const birthdate = new Date(birthdateInput.value);
+      const today = new Date();
+      let age = today.getFullYear() - birthdate.getFullYear();
+      const monthDifference = today.getMonth() - birthdate.getMonth();
+      if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthdate.getDate())) {
+        age--;
+      }
+      ageDisplay.textContent = `อายุ: ${age} ปี`;
+      return age;
+    }
+
+    // ฟังชั่นพรีวิวภาพที่อัพโหลด
+    function previewImage(event) {
+      const input = event.target;
+      const previewContainer = document.getElementById('image-preview-container');
+      const previewImage = document.getElementById('image-preview');
+
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          previewImage.src = e.target.result;
+          previewContainer.classList.remove('hidden');
+        };
+        reader.readAsDataURL(input.files[0]);
+      } else {
+        previewImage.src = '#';
+        previewContainer.classList.add('hidden');
+      }
+    }
+
+    // ข้อความตัวตรวจสอบฟอร์ม
+    function validateForm() {
+      const errors = [];
+
+      if (!validateIDCard()) {
+        errors.push('❌กรุณากรอกเลขบัตรประชาชนให้ครบ13หลัก');
+      }
+
+      if (!validatePhone()) {
+        errors.push('❌กรุณากรอกเบอร์โทรให้ถูกต้อง(ต้องขึ้นต้นด้วย 0 และตามด้วย 9 หลัก)');
+      }
+
+      const requiredFields = [
+        { id: 'datetime', message: '❌กรุณากรอกวันที่และเวลา' },
+        { id: 'prefix', message: '❌กรุณาเลือกคำนำหน้า' },
+        { id: 'fullname', message: '❌กรุณากรอกชื่อ-นามสกุล' },
+        { id: 'birthdate', message: '❌กรุณากรอกวัน/เดือน/ปีเกิด' },
+        { id: 'address-id', message: '❌กรุณากรอกที่อยู่ตามบัตรประชาชน' },
+        { id: 'address-current', message: '❌กรุณากรอกที่อยู่ปัจจุบัน' },
+        { id: 'location', message: '❌กรุณากรอกสถานที่' },
+        { id: 'latlong', message: '❌กรุณากรอกพิกัด' },
+        { id: 'details', message: '❌กรุณากรอกรายละเอียด' }
+      ];
+
+      requiredFields.forEach(field => {
+        const input = document.getElementById(field.id);
+        if (!input.value.trim()) {
+          errors.push(field.message);
+        }
+      });
+
+      return errors;
+    }
+
+    // โชว์เมื่อตรวจสอบข้อมูลว่ายังกรอกไม่ครบ
+    function showValidationErrors(errors) {
+      const errorList = errors.map(error => `<li>${error}</li>`).join('');
+      Swal.fire({
+        title: "ข้อมูลไม่ครบถ้วน",
+        html: `กรุณาตรวจสอบข้อมูลต่อไปนี้:<ul class="text-left mt-4">${errorList}</ul>`,
+        icon: "error",
+        confirmButtonText: "ตกลง",
+      });
+    }
+
+    // โชว์โหลด
+    function showLoading() {
+      loading.classList.remove('hidden');
+    }
+
+    // ซ่อนโหลด
+    function hideLoading() {
+      loading.classList.add('hidden');
+    }
+
+    // ยืนยันส่งข้อมูล (บันทึกใหม่)
+    function submitData() {
+      const errors = validateForm();
+
+      if (errors.length > 0) {
+        showValidationErrors(errors);
+        return;
+      }
+
+      showLoading();
+
+      const age = calculateAge();
+      const birthdate = new Date(birthdateInput.value);
+      const birthYear = birthdate.getFullYear() + 543;
+      const birthMonth = birthdate.getMonth() + 1;
+      const birthDay = birthdate.getDate();
+      const birthdateBE = `${birthDay}/${birthMonth}/${birthYear}`;
+
+      const formData = {
+        datetime: document.getElementById('datetime').value,
+        idCard: idCardInput.value,
+        prefix: document.getElementById('prefix').value,
+        fullName: document.getElementById('fullname').value,
+        birthdate: birthdateBE,
+        age: age,
+        addressId: document.getElementById('address-id').value,
+        addressCurrent: document.getElementById('address-current').value,
+        phone: phoneInput.value,
+        location: document.getElementById('location').value,
+        latlong: document.getElementById('latlong').value,
+        details: document.getElementById('details').value,
+        image: imageUpload.files[0] ? imageUpload.files[0] : null
+      };
+
+      if (formData.image) {
+        const reader = new FileReader();
+        reader.onloadend = function() {
+          const base64Image = reader.result.split(',')[1];
+          formData.image = {
+            base64: base64Image,
+            type: formData.image.type,
+            name: formData.image.name
+          };
+          sendData(formData);
+        };
+        reader.readAsDataURL(formData.image);
+      } else {
+        sendData(formData);
+      }
+    }
+    
+    // ยืนยันอัพเดทข้อมูล
+    function updateData() {
+      const errors = validateForm();
+
+      if (errors.length > 0) {
+        showValidationErrors(errors);
+        return;
+      }
+
+      showLoading();
+
+      const age = calculateAge();
+      const birthdate = new Date(birthdateInput.value);
+      const birthYear = birthdate.getFullYear() + 543;
+      const birthMonth = birthdate.getMonth() + 1;
+      const birthDay = birthdate.getDate();
+      const birthdateBE = `${birthDay}/${birthMonth}/${birthYear}`;
+
+      const formData = {
+        id: recordIdInput.value,
+        datetime: document.getElementById('datetime').value,
+        idCard: idCardInput.value,
+        prefix: document.getElementById('prefix').value,
+        fullName: document.getElementById('fullname').value,
+        birthdate: birthdateBE,
+        age: age,
+        addressId: document.getElementById('address-id').value,
+        addressCurrent: document.getElementById('address-current').value,
+        phone: phoneInput.value,
+        location: document.getElementById('location').value,
+        latlong: document.getElementById('latlong').value,
+        details: document.getElementById('details').value,
+        existingImageUrl: existingImageUrlInput.value,
+        image: imageUpload.files[0] ? imageUpload.files[0] : null
+      };
+
+      if (formData.image) {
+        const reader = new FileReader();
+        reader.onloadend = function() {
+          const base64Image = reader.result.split(',')[1];
+          formData.image = {
+            base64: base64Image,
+            type: formData.image.type,
+            name: formData.image.name
+          };
+          updateRecord(formData);
+        };
+        reader.readAsDataURL(formData.image);
+      } else {
+        updateRecord(formData);
+      }
+    }
+
+    // ส่งออกข้อมูล (บันทึกใหม่)
+    function sendData(formData) {
+      google.script.run
+        .withSuccessHandler(function(response) {
+          hideLoading();
+
+          if (response.status === 'success') {
+            Swal.fire({
+              title: "บันทึกข้อมูลสำเร็จ!",
+              icon: "success",
+              confirmButtonText: "ตกลง",
+            }).then(() => {
+              resetForm();
+              backToMainMenu();
+            });
+          } else {
+            Swal.fire({
+              title: "บันทึกข้อมูลไม่สำเร็จ",
+              text: response.message,
+              icon: "error",
+              confirmButtonText: "ตกลง",
+            });
+          }
+        })
+        .withFailureHandler(function(error) {
+          hideLoading();
+          Swal.fire({
+            title: "เกิดข้อผิดพลาด",
+            text: "ไม่สามารถบันทึกข้อมูลได้: " + error.message,
+            icon: "error",
+            confirmButtonText: "ตกลง",
+          });
+        })
+        .submitFormData(formData);
+    }
+    
+    // ส่งออกข้อมูลสำหรับอัพเดท
+    function updateRecord(formData) {
+      google.script.run
+        .withSuccessHandler(function(response) {
+          hideLoading();
+
+          if (response.status === 'success') {
+            Swal.fire({
+              title: "แก้ไขข้อมูลสำเร็จ!",
+              icon: "success",
+              confirmButtonText: "ตกลง",
+            }).then(() => {
+              resetForm();
+              databaseContainer.classList.remove('hidden');
+              formContainer.classList.add('hidden');
+              fetchRecords();
+            });
+          } else {
+            Swal.fire({
+              title: "แก้ไขข้อมูลไม่สำเร็จ",
+              text: response.message,
+              icon: "error",
+              confirmButtonText: "ตกลง",
+            });
+          }
+        })
+        .withFailureHandler(function(error) {
+          hideLoading();
+          Swal.fire({
+            title: "เกิดข้อผิดพลาด",
+            text: "ไม่สามารถแก้ไขข้อมูลได้: " + error.message,
+            icon: "error",
+            confirmButtonText: "ตกลง",
+          });
+        })
+        .updateFormData(formData);
+    }
+    
+    // เมื่อกดปุ่ม Enter ในช่อง password
+    passwordInput.addEventListener('keyup', function(event) {
+      if (event.key === 'Enter') {
+        checkPassword();
+      }
+    });
+    
+    // ฟังก์ชันยืนยันการลบข้อมูล
+    function confirmDeleteRecord(index) {
+      const record = window.allRecords[index];
+      
+      Swal.fire({
+        title: "ยืนยันการลบข้อมูล",
+        html: `คุณต้องการลบข้อมูลของ <strong>${record.prefix} ${record.fullName}</strong> ใช่หรือไม่?<br>การดำเนินการนี้ไม่สามารถเรียกคืนได้`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "ลบข้อมูล",
+        cancelButtonText: "ยกเลิก",
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          deleteRecord(record.id);
+        }
+      });
+    }
+    
+    // ฟังก์ชันลบข้อมูล
+    function deleteRecord(recordId) {
+      showLoading();
+      
+      google.script.run
+        .withSuccessHandler(function(response) {
+          hideLoading();
+          
+          if (response.status === 'success') {
+            Swal.fire({
+              title: "ลบข้อมูลสำเร็จ",
+              text: "ข้อมูลถูกลบออกจากระบบเรียบร้อยแล้ว",
+              icon: "success",
+              confirmButtonText: "ตกลง",
+            }).then(() => {
+              fetchRecords(); // โหลดข้อมูลใหม่
+            });
+          } else {
+            Swal.fire({
+              title: "ลบข้อมูลไม่สำเร็จ",
+              text: response.message || "เกิดข้อผิดพลาดในการลบข้อมูล",
+              icon: "error",
+              confirmButtonText: "ตกลง",
+            });
+          }
+        })
+        .withFailureHandler(function(error) {
+          hideLoading();
+          
+          Swal.fire({
+            title: "เกิดข้อผิดพลาด",
+            text: "ไม่สามารถลบข้อมูลได้: " + error.message,
+            icon: "error",
+            confirmButtonText: "ตกลง",
+          });
+        })
+        .deleteRecord(recordId);
+    }
+    
+    // เมื่อคลิกที่พื้นหลังของโมดอล
+    window.onclick = function(event) {
+      if (event.target === document.getElementById('image-modal')) {
+        closeImageModal();
+      }
+      if (event.target === document.getElementById('detail-modal')) {
+        closeDetailModal();
+      }
+    };
+  </script>
 </body>
 </html>
+
+
+GoogleScript FILE
+// หน้าหลักของแอป
+function doGet() {
+  return HtmlService.createTemplateFromFile('index').evaluate()
+    .setTitle("Detective-X")
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+// ฟังก์ชันตรวจสอบรหัสผ่าน
+function checkPassword(inputPassword) {
+  const correctPassword = 'khunthalay'; // รหัสผ่านที่ถูกต้อง (เก็บไว้ใน Server)
+
+  if (inputPassword === correctPassword) {
+    return { status: 'success', message: 'รหัสผ่านถูกต้อง' };
+  } else {
+    return { status: 'error', message: 'รหัสผ่านไม่ถูกต้อง' };
+  }
+}
+
+// ฟังก์ชันดึงข้อมูลทั้งหมดจาก Sheet
+function getRecords() {
+  try {
+    var sheetId = "1norHopSjbEQLhow8cQ441axZaZy5WBi9fKmoK-7n8vc";
+    var sheetName = "Person";
+    var sheet = SpreadsheetApp.openById(sheetId).getSheetByName(sheetName);
+    
+    if (!sheet) {
+      Logger.log('ไม่พบชีท "Person"');
+      return [];
+    }
+    
+    const dataRange = sheet.getDataRange();
+    const values = dataRange.getValues();
+    
+    Logger.log('จำนวนแถวทั้งหมด: ' + values.length);
+    
+    if (values.length <= 1) {
+      Logger.log('มีเพียงแถวหัวตาราง ไม่มีข้อมูล');
+      return [];
+    }
+    
+    const records = [];
+    
+    // เริ่มจากแถวที่ 2 (ข้ามส่วนหัว)
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      
+      // ข้ามแถวที่ว่างเปล่า
+      if (!row[0] && !row[1] && !row[2]) {
+        Logger.log('พบแถวว่าง ข้าม: แถวที่ ' + (i+1));
+        continue;
+      }
+      
+      // สร้างข้อมูลแบบปลอดภัย
+      const record = {};
+      
+      record.id = i + 1;
+      record.systemDate = row[0] ? Utilities.formatDate(new Date(row[0]), "GMT+7", "yyyy-MM-dd HH:mm:ss") : "";
+      record.datetime = row[1] ? Utilities.formatDate(new Date(row[1]), "GMT+7", "yyyy-MM-dd HH:mm:ss") : "";
+      record.idCard = row[2] ? String(row[2]) : "";
+      record.prefix = row[3] ? String(row[3]) : "";
+      record.fullName = row[4] ? String(row[4]) : "";
+      record.birthdate = row[5] ? String(row[5]) : "";
+      record.age = row[6] ? Number(row[6]) : 0;
+      record.addressId = row[7] ? String(row[7]) : "";
+      record.addressCurrent = row[8] ? String(row[8]) : "";
+      record.phone = row[9] ? String(row[9]) : "";
+      record.location = row[10] ? String(row[10]) : "";
+      record.latlong = row[11] ? String(row[11]) : "";
+      record.details = row[12] ? String(row[12]) : "";
+      record.imageUrl = "";
+      
+      // พยายามดึงข้อมูลรูปภาพ
+      try {
+        const imageCell = sheet.getRange(i + 1, 14).getFormula();
+        if (imageCell && imageCell.includes('IMAGE')) {
+          const urlMatch = imageCell.match(/IMAGE\("([^"]+)"/);
+          if (urlMatch && urlMatch[1]) {
+            record.imageUrl = String(urlMatch[1]);
+          }
+        }
+      } catch (e) {
+        Logger.log('ไม่สามารถอ่านสูตรรูปภาพได้: ' + e.message);
+      }
+      
+      records.push(record);
+    }
+    
+    // เรียงลำดับตามวันที่ล่าสุด
+    records.sort(function(a, b) {
+      // ใช้ systemDate เพราะมั่นใจว่ามีค่า
+      const dateA = a.systemDate ? new Date(a.systemDate) : new Date(0);
+      const dateB = b.systemDate ? new Date(b.systemDate) : new Date(0);
+      return dateB - dateA;
+    });
+    
+    Logger.log('ดึงข้อมูลสำเร็จ: ' + records.length + ' รายการ');
+    return records;
+    
+  } catch (error) {
+    Logger.log('เกิดข้อผิดพลาดในการดึงข้อมูล: ' + error.message);
+    Logger.log('สแต็คเทรซ: ' + error.stack);
+    
+    // ส่งอาร์เรย์ว่างกลับเพื่อให้ UI แสดงผลได้
+    return [];
+  }
+}
+
+// ฟังก์ชันสำหรับบันทึกข้อมูลใหม่
+function submitFormData(data) {
+  try {
+    var sheetId = "1norHopSjbEQLhow8cQ441axZaZy5WBi9fKmoK-7n8vc";
+    var sheetName = "Person";
+    var sheet = SpreadsheetApp.openById(sheetId).getSheetByName(sheetName);
+
+    const lastRow = sheet.getLastRow() + 1;
+    
+    // ตั้งค่าการแสดงผลสำหรับช่องเบอร์โทร (เพื่อให้ไม่แปลงเป็นตัวเลข)
+    const phoneRange = sheet.getRange(lastRow, 10);
+    phoneRange.setNumberFormat('@');
+
+    // เพิ่มข้อมูลลงตาราง
+    sheet.appendRow([
+      new Date(), // วันที่บันทึกในระบบ
+      new Date(data.datetime), // วันที่ที่ผู้ใช้กรอก
+      data.idCard,
+      data.prefix,
+      data.fullName,
+      data.birthdate,
+      data.age,
+      data.addressId,
+      data.addressCurrent,
+      data.phone, // ไม่ต้องใช้ "'" นำหน้าแล้ว เพราะได้ตั้งค่า NumberFormat เป็น '@' แล้ว
+      data.location,
+      data.latlong,
+      data.details
+    ]);
+
+    // อัปโหลดรูปภาพ (ถ้ามี)
+    if (data.image) {
+      var folder = DriveApp.getFolderById('1-AN4crW2rYD8qJNVG2LoAeDbI_K0mUvj');
+      var blob = Utilities.newBlob(Utilities.base64Decode(data.image.base64), data.image.type, data.image.name);
+      var file = folder.createFile(blob);
+      var fileLink = "https://lh5.googleusercontent.com/d/" + file.getId();
+      
+      // เก็บลิงก์รูปภาพในคอลัมน์ที่ 14
+      sheet.getRange(lastRow, 14).setFormula('=IMAGE("' + fileLink + '")');
+    }
+
+    return {
+      status: 'success',
+      message: 'บันทึกข้อมูลสำเร็จ'
+    };
+
+  } catch (error) {
+    Logger.log('Error in submitFormData: ' + error.message);
+    return {
+      status: 'error',
+      message: 'เกิดข้อผิดพลาด: ' + error.message
+    };
+  }
+}
+
+// ฟังก์ชันสำหรับแก้ไขข้อมูลที่มีอยู่
+function updateFormData(data) {
+  try {
+    var sheetId = "1norHopSjbEQLhow8cQ441axZaZy5WBi9fKmoK-7n8vc";
+    var sheetName = "Person";
+    var sheet = SpreadsheetApp.openById(sheetId).getSheetByName(sheetName);
+    
+    // data.id คือเลขแถวในชีท (เริ่มจาก 1)
+    const rowIndex = parseInt(data.id);
+    
+    if (isNaN(rowIndex) || rowIndex < 2) {
+      throw new Error('ไม่พบรายการที่ต้องการแก้ไข');
+    }
+    
+    // อัปเดตข้อมูลในแถวที่กำหนด
+    sheet.getRange(rowIndex, 2).setValue(new Date(data.datetime)); // วันที่ที่ผู้ใช้กรอก
+    sheet.getRange(rowIndex, 3).setValue(data.idCard);
+    sheet.getRange(rowIndex, 4).setValue(data.prefix);
+    sheet.getRange(rowIndex, 5).setValue(data.fullName);
+    sheet.getRange(rowIndex, 6).setValue(data.birthdate);
+    sheet.getRange(rowIndex, 7).setValue(data.age);
+    sheet.getRange(rowIndex, 8).setValue(data.addressId);
+    sheet.getRange(rowIndex, 9).setValue(data.addressCurrent);
+    
+    // ตั้งค่ารูปแบบเบอร์โทรศัพท์
+    const phoneRange = sheet.getRange(rowIndex, 10);
+    phoneRange.setNumberFormat('@');
+    phoneRange.setValue(data.phone);
+    
+    sheet.getRange(rowIndex, 11).setValue(data.location);
+    sheet.getRange(rowIndex, 12).setValue(data.latlong);
+    sheet.getRange(rowIndex, 13).setValue(data.details);
+    
+    // จัดการกับรูปภาพ
+    let fileLink = '';
+    
+    if (data.image) {
+      // มีการอัปโหลดรูปใหม่
+      var folder = DriveApp.getFolderById('1-AN4crW2rYD8qJNVG2LoAeDbI_K0mUvj');
+      var blob = Utilities.newBlob(Utilities.base64Decode(data.image.base64), data.image.type, data.image.name);
+      var file = folder.createFile(blob);
+      fileLink = "https://lh5.googleusercontent.com/d/" + file.getId();
+      
+      // แก้ไขลิงก์รูปภาพในคอลัมน์ที่ 14
+      sheet.getRange(rowIndex, 14).setFormula('=IMAGE("' + fileLink + '")');
+      
+    } else if (!data.image && !data.existingImageUrl) {
+      // ไม่มีรูปเดิมและไม่มีรูปใหม่ ลบรูปที่อาจจะมีอยู่ออก
+      sheet.getRange(rowIndex, 14).clearContent();
+    }
+    // กรณีไม่มีการอัปโหลดรูปใหม่ แต่มีรูปเดิมอยู่แล้ว ไม่ต้องทำอะไร
+
+    return {
+      status: 'success',
+      message: 'แก้ไขข้อมูลสำเร็จ'
+    };
+
+  } catch (error) {
+    Logger.log('Error in updateFormData: ' + error.message);
+    return {
+      status: 'error',
+      message: 'เกิดข้อผิดพลาด: ' + error.message
+    };
+  }
+}
+
+// ฟังก์ชันช่วยในการรวม HTML
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+}
